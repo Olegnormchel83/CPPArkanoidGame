@@ -2,26 +2,86 @@
 
 
 #include "World/ArkBall.h"
+#include "Components/ArrowComponent.h"
 
-// Sets default values
+DEFINE_LOG_CATEGORY_STATIC(LogArkBall, All, All);
+
 AArkBall::AArkBall()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	StaticMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMesh"));
+	check(StaticMesh);
+
+	SetRootComponent(StaticMesh);
+
+	ForwardArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("ForwardArrow"));
+	check(ForwardArrow);
+	ForwardArrow->SetupAttachment(GetRootComponent());
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh>
+		SphereMeshAsset(TEXT("Engine/BasicShapes/Sphere.Sphere"));
+	if (SphereMeshAsset.Succeeded())
+	{
+		StaticMesh->SetStaticMesh(SphereMeshAsset.Object);
+	}
 }
 
-// Called when the game starts or when spawned
+void AArkBall::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	SetActorScale3D(FVector(InitParameters.Scale));
+	Power = InitParameters.Power;
+	Speed = InitParameters.Speed;
+}
+
 void AArkBall::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	Direction = GetActorForwardVector().GetSafeNormal();
+	SetBallState(EState::Moving);
 }
 
-// Called every frame
 void AArkBall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	switch (State)
+	{
+	case EState::Idle:
+		break;
+	case EState::Moving:
+		Move(DeltaTime);
+		break;
+	default:
+		UE_LOG(LogArkBall, Warning, TEXT("Unknown state."));
+		break;
+	}
 }
 
+void AArkBall::Move(const float DeltaTime)
+{
+	const FVector Offset = Direction * Speed * DeltaTime;
+	FHitResult Hit;
+	AddActorWorldOffset(Offset, true, &Hit);
+
+	if (Hit.bBlockingHit)
+	{
+		Direction = Direction - 2 * (FVector::DotProduct(Direction, Hit.Normal)) * Hit.Normal;
+		Direction.Z = 0.f;
+		Direction = Direction.GetSafeNormal();
+
+		if (Speed < InitParameters.MaxSpeed)
+		{
+			Speed += InitParameters.Speed * 0.1f;
+			Speed = FMath::Min(Speed, InitParameters.MaxSpeed);
+			UE_LOG(LogArkBall, Warning, TEXT("Updated ball speed: %.1f"), Speed);
+		}
+	}
+}
+
+void AArkBall::SetBallState(const EState NewState)
+{
+	State = NewState;
+}
