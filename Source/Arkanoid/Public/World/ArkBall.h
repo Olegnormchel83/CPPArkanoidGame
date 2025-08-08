@@ -22,10 +22,10 @@ struct FInitParameters
 
 	UPROPERTY(EditDefaultsOnly, meta = (Tooltip = "Стартовый размер"))
 	float Scale;
-	
+
 	UPROPERTY(EditDefaultsOnly, meta = (Tooltip = "Начальная сила"))
 	int32 Power;
-	
+
 	UPROPERTY(EditDefaultsOnly, meta = (Tooltip = "Начальная скорость"))
 	float Speed;
 
@@ -58,15 +58,17 @@ private:
 	float Speed = 0.f;
 	FVector Direction = FVector::ZeroVector;
 	EState State = EState::Idle;
-	
+
 public:
 	AArkBall();
 	
+	FORCEINLINE int32 GetPower() const { return Power; }
+
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Settings")
 	FInitParameters InitParameters;
 

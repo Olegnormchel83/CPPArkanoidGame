@@ -18,13 +18,6 @@ AArkBall::AArkBall()
 	ForwardArrow = CreateDefaultSubobject<UArrowComponent>(TEXT("ForwardArrow"));
 	check(ForwardArrow);
 	ForwardArrow->SetupAttachment(GetRootComponent());
-
-	static ConstructorHelpers::FObjectFinder<UStaticMesh>
-		SphereMeshAsset(TEXT("Engine/BasicShapes/Sphere.Sphere"));
-	if (SphereMeshAsset.Succeeded())
-	{
-		StaticMesh->SetStaticMesh(SphereMeshAsset.Object);
-	}
 }
 
 void AArkBall::OnConstruction(const FTransform& Transform)
