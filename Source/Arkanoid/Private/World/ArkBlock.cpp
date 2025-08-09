@@ -27,16 +27,15 @@ void AArkBlock::Init(
 {
 	SetActorScale3D(NewScale);
 	BonusClass = NewBonusClass;
-
 	HealthComponent->SetHealth(LifeAmount);
+	
+	if (HealtMaterials.IsValidIndex(HealthComponent->GetHealth() - 1))
+		StaticMesh->SetMaterial(0, HealtMaterials[HealthComponent->GetHealth() - 1]);
 }
 
 void AArkBlock::BeginPlay()
 {
 	Super::BeginPlay();
-
-	if (HealtMaterials.IsValidIndex(HealthComponent->GetHealth() - 1))
-		StaticMesh->SetMaterial(0, HealtMaterials[HealthComponent->GetHealth() - 1]);
 }
 
 void AArkBlock::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved,

@@ -21,7 +21,10 @@ public class Arkanoid : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[]
 		{
-			"Arkanoid"
+			"Arkanoid",
+			"Arkanoid/Public/Components",
+			"Arkanoid/Public/Framework",
+			"Arkanoid/Public/World"
 		});
 	}
 }
