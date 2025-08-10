@@ -3,12 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "EnhancedInputSubsystems.h"
 
 #include "ArkPaddle.generated.h"
 
 class AArkBall;
 class UArrowComponent;
 class UBoxComponent;
+class UInputMappingContext;
+class UInputAction;
 
 UCLASS()
 class ARKANOID_API AArkPaddle : public APawn
@@ -38,6 +41,22 @@ private:
 
 	UPROPERTY()
 	AArkBall* CurrentBall = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Settings | Input",
+		meta = (AllowPrivateAccess = "true"))
+	UInputMappingContext* DefaultMappingContext = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Settings | Input",
+		meta = (AllowPrivateAccess = "true"))
+	UInputAction* EscapeAction = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Settings | Input",
+		meta = (AllowPrivateAccess = "true"))
+	UInputAction* SpawnBallAction = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Settings | Input",
+		meta = (AllowPrivateAccess = "true"))
+	UInputAction* MoveAction = nullptr;
 	
 public:
 	AArkPaddle();
@@ -45,7 +64,16 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
-	
+
+	UFUNCTION()
+	void ExitGame();
+
+	UFUNCTION()
+	void StartGame();
+
+	UFUNCTION()
+	void Move(const FInputActionValue& Value);
+
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Settings | Game",
 		meta = (ToolTip = "Класс мяча для спауна"))

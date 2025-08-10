@@ -4,6 +4,8 @@
 
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
+#include "EnhancedInputComponent.h"
+#include "Kismet/GameplayStatics.h"
 
 AArkPaddle::AArkPaddle()
 {
@@ -42,7 +44,29 @@ AArkPaddle::AArkPaddle()
 void AArkPaddle::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	if (const auto* PlayerController = Cast<APlayerController>(Controller))
+	{
+		const auto Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>
+			(PlayerController->GetLocalPlayer());
+
+		if (Subsystem)
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+	}
+}
+
+void AArkPaddle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	if (const auto EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		EnhancedInputComponent->BindAction(EscapeAction, ETriggerEvent::Started, this, &AArkPaddle::ExitGame);
+		EnhancedInputComponent->BindAction(SpawnBallAction, ETriggerEvent::Started, this, &AArkPaddle::StartGame);
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AArkPaddle::Move);
+	}
 }
 
 void AArkPaddle::OnConstruction(const FTransform& Transform)
@@ -56,8 +80,27 @@ void AArkPaddle::OnConstruction(const FTransform& Transform)
 	RightStaticMesh->SetWorldScale3D(TempScale);
 }
 
-void AArkPaddle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void AArkPaddle::ExitGame()
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	if (!GetWorld()) return;
+	UGameplayStatics::OpenLevel(GetWorld(), "Menu", true);
+}
+
+void AArkPaddle::StartGame()
+{
+	if (!GetWorld()) return;
+}
+
+void AArkPaddle::Move(const FInputActionValue& Value)
+{
+	if (!GetWorld()) return;
+	
+	const FVector2D AxisVector = Value.Get<FVector2D>();
+
+	if (Controller)
+	{
+		const float CurrentSpeed = AxisVector.X * Speed * UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
+		AddActorWorldOffset(FVector(0.f,CurrentSpeed, 0.f), true);
+	}
 }
 
