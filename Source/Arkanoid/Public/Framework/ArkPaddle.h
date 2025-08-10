@@ -74,6 +74,12 @@ protected:
 	UFUNCTION()
 	void Move(const FInputActionValue& Value);
 
+	UFUNCTION()
+	void SpawnBall();
+
+	UFUNCTION()
+	void BallIsDead();
+
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "Settings | Game",
 		meta = (ToolTip = "Класс мяча для спауна"))

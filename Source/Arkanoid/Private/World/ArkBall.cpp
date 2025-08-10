@@ -53,6 +53,13 @@ void AArkBall::Tick(float DeltaTime)
 	}
 }
 
+void AArkBall::Destroyed()
+{
+	OnDeadEvent.Broadcast();
+	
+	Super::Destroyed();
+}
+
 void AArkBall::Move(const float DeltaTime)
 {
 	const FVector Offset = Direction * Speed * DeltaTime;

@@ -2,6 +2,7 @@
 
 #include "ArkPaddle.h"
 
+#include "ArkBall.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 #include "EnhancedInputComponent.h"
@@ -55,6 +56,8 @@ void AArkPaddle::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	SpawnBall();
 }
 
 void AArkPaddle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -89,6 +92,12 @@ void AArkPaddle::ExitGame()
 void AArkPaddle::StartGame()
 {
 	if (!GetWorld()) return;
+
+	if (CurrentBall)
+	{
+		CurrentBall->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		CurrentBall->SetBallState(EState::Moving);
+	}
 }
 
 void AArkPaddle::Move(const FInputActionValue& Value)
@@ -104,3 +113,34 @@ void AArkPaddle::Move(const FInputActionValue& Value)
 	}
 }
 
+void AArkPaddle::SpawnBall()
+{
+	if (!GetWorld()) return;
+
+	if (BallClass && !CurrentBall)
+	{
+		const FVector SpawnLocation = Arrow->GetComponentLocation();
+		const FRotator SpawnRotation = Arrow->GetComponentRotation();
+
+		CurrentBall = GetWorld()->SpawnActor<AArkBall>(BallClass, SpawnLocation, SpawnRotation);
+		if (CurrentBall)
+		{
+			CurrentBall->SetOwner(this);
+			CurrentBall->SetBallState(EState::Idle);
+			CurrentBall->OnDeadEvent.AddDynamic(this, &AArkPaddle::BallIsDead);
+
+			CurrentBall->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+		}
+	}
+}
+
+void AArkPaddle::BallIsDead()
+{
+	CurrentBall = nullptr;
+	Lives = FMath::Max(Lives - 1, 0);
+
+	if (Lives)
+	{
+		SpawnBall();
+	}
+}

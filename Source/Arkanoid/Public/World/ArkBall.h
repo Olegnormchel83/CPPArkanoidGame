@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "ArkBall.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDeadEvent);
+
 class UArrowComponent;
 
 UENUM()
@@ -32,10 +34,10 @@ struct FInitParameters
 	UPROPERTY(EditDefaultsOnly, meta = (Tooltip = "Максимальная скорость"))
 	float MaxSpeed;
 
-	// Default structure contructor
+	// Default structure constructor
 	FInitParameters()
 	{
-		Scale = 1.0f;
+		Scale = 0.5f;
 		Power = 1;
 		Speed = 500.0f;
 		MaxSpeed = 2500.0f;
@@ -61,13 +63,24 @@ private:
 
 public:
 	AArkBall();
-	
+
 	FORCEINLINE int32 GetPower() const { return Power; }
+
+	UPROPERTY(BlueprintAssignable, Category = "Events")
+	FOnDeadEvent OnDeadEvent;
+
+	/**
+	* Функция для изменения состояния шарика
+	* @param NewState Новый статус
+	*/
+	void SetBallState(const EState NewState);
 
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void Destroyed() override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Settings")
 	FInitParameters InitParameters;
@@ -78,10 +91,4 @@ protected:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void Move(const float DeltaTime);
-
-	/**
-	 * Функция для изменения состояния шарика
-	 * @param NewState Новый статус
-	 */
-	void SetBallState(const EState NewState);
 };
