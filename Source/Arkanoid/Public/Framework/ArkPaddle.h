@@ -57,6 +57,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Settings | Input",
 		meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction = nullptr;
+
+	UPROPERTY()
+	TArray<UStaticMeshComponent*> BallLives;
+
+	void SpawnBallLives();
+	void UpdateBallLivesLocation();
 	
 public:
 	AArkPaddle();
@@ -96,6 +102,22 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Settings | Game",
 		meta = (ToolTip = "Скорость каретки"))
 	float Speed = 2000.f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Settings | Visual",
+		meta = (ToolTip = "Меш для отображения жизней"))
+	UStaticMesh* LivesMesh = nullptr;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	// Работа с бонусами
+protected:
+	FTimerHandle BonusSizeTimer;
+
+	UFUNCTION()
+	void SetDefaultSize();
+	
+public:
+	void BonusChangeSize(const float AdditionalSize, const float BonusTime);
+
+	void BonusChangeLives(const int32 Amount);
 };

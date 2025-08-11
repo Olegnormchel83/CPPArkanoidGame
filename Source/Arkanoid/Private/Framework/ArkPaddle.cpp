@@ -58,6 +58,7 @@ void AArkPaddle::BeginPlay()
 	}
 
 	SpawnBall();
+	SpawnBallLives();
 }
 
 void AArkPaddle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -70,6 +71,39 @@ void AArkPaddle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 		EnhancedInputComponent->BindAction(SpawnBallAction, ETriggerEvent::Started, this, &AArkPaddle::StartGame);
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AArkPaddle::Move);
 	}
+}
+
+void AArkPaddle::BonusChangeSize(const float AdditionalSize, const float BonusTime)
+{
+	if (AdditionalSize == 0 || BonusTime == 0) return;
+	if (!GetWorld()) return;
+	
+	if (!GetWorld()->GetTimerManager().IsTimerActive(BonusSizeTimer))
+	{
+		FVector TempScale = GetActorScale3D();
+		TempScale.Y += TempScale.Y * AdditionalSize;
+		SetActorScale3D(TempScale);
+		BoxCollider->SetBoxExtent(FVector(25.f, 50.f + 20.f / TempScale.Y, 25.f));
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		BonusSizeTimer,
+		this,
+		&ThisClass::SetDefaultSize,
+		BonusTime,
+		false);
+}
+
+void AArkPaddle::BonusChangeLives(const int32 Amount)
+{
+	Lives += Amount;
+	SpawnBallLives();
+}
+
+void AArkPaddle::SetDefaultSize()
+{
+	SetActorScale3D(DefaultScale);
+	BoxCollider->SetBoxExtent(FVector(25.f, 50 + 20.f / DefaultScale.Y, 25.f));
 }
 
 void AArkPaddle::OnConstruction(const FTransform& Transform)
@@ -128,8 +162,9 @@ void AArkPaddle::SpawnBall()
 			CurrentBall->SetOwner(this);
 			CurrentBall->SetBallState(EState::Idle);
 			CurrentBall->OnDeadEvent.AddDynamic(this, &AArkPaddle::BallIsDead);
-
-			CurrentBall->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+			
+			//CurrentBall->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
+			CurrentBall->AttachToComponent(Arrow, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		}
 	}
 }
@@ -142,5 +177,55 @@ void AArkPaddle::BallIsDead()
 	if (Lives)
 	{
 		SpawnBall();
+		BallLives[Lives - 1]->DestroyComponent();
+		BallLives.RemoveAt(Lives - 1);
+		UpdateBallLivesLocation();
+	}
+}
+
+void AArkPaddle::SpawnBallLives()
+{
+	if (!LivesMesh) return;
+
+	for (auto LiveBall : BallLives)
+	{
+		LiveBall->DestroyComponent();
+	}
+	BallLives.Empty();
+	
+	for (int8 i = 0; i < Lives - 1; ++i)
+	{
+		auto* NewMeshComp = NewObject<UStaticMeshComponent>
+			(this, *FString::Printf(TEXT("Lives %d"), i + 1));
+
+		if (NewMeshComp)
+		{
+			NewMeshComp->SetStaticMesh(LivesMesh);
+			NewMeshComp->SetAbsolute(false, false, true);
+			NewMeshComp->SetWorldScale3D(FVector(0.4f));
+			NewMeshComp->SetupAttachment(GetRootComponent());
+			NewMeshComp->RegisterComponent();
+
+			BallLives.Add(NewMeshComp);
+			UpdateBallLivesLocation();
+		}
+	}
+}
+
+void AArkPaddle::UpdateBallLivesLocation()
+{
+	constexpr float BallSpacing = 30.f; // Расстояние между шариками 
+	const int8 NumBalls = BallLives.Num();
+
+	const float TotalWidth = (NumBalls - 1) * BallSpacing; // Общая ширина расположения шариков
+	const float StartOffset = -TotalWidth / 2; // Начальное смещение для первого шарика
+
+	for (int8 i = 0; i < NumBalls; ++i)
+	{
+		const float Offset = StartOffset + i * BallSpacing;
+		if (IsValid(BallLives[i]))
+		{
+			BallLives[i]->SetRelativeLocation(FVector(-100.f, Offset, 0.f));
+		}
 	}
 }

@@ -76,7 +76,6 @@ void AArkBall::Move(const float DeltaTime)
 		{
 			Speed += InitParameters.Speed * 0.1f;
 			Speed = FMath::Min(Speed, InitParameters.MaxSpeed);
-			UE_LOG(LogArkBall, Warning, TEXT("Updated ball speed: %.1f"), Speed);
 		}
 	}
 }
