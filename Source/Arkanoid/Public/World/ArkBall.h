@@ -91,4 +91,21 @@ protected:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "Movement")
 	void Move(const float DeltaTime);
+
+	// Рабобта с бонусами
+protected:
+	FTimerHandle BallPowerTimer;
+
+	UPROPERTY()
+	UMaterialInterface* DefaultMaterial = nullptr;
+
+	void UpdateMaterial();
+	
+public:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Settings | Bonuses")
+	UMaterialInterface* PowerMaterial = nullptr;
+	
+	void ChangeSpeed(const float Amount);
+	void ChangePower(const int32 Amount, const float BonusTime);
+	void ResetBallPower();
 };

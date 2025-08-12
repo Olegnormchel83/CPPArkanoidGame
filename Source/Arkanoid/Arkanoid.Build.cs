@@ -22,6 +22,7 @@ public class Arkanoid : ModuleRules
 		PublicIncludePaths.AddRange(new string[]
 		{
 			"Arkanoid",
+			"Arkanoid/Public/Bonuses",
 			"Arkanoid/Public/Components",
 			"Arkanoid/Public/Framework",
 			"Arkanoid/Public/World"

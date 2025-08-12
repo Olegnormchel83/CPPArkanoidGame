@@ -73,32 +73,6 @@ void AArkPaddle::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	}
 }
 
-void AArkPaddle::BonusChangeSize(const float AdditionalSize, const float BonusTime)
-{
-	if (AdditionalSize == 0 || BonusTime == 0) return;
-	if (!GetWorld()) return;
-	
-	if (!GetWorld()->GetTimerManager().IsTimerActive(BonusSizeTimer))
-	{
-		FVector TempScale = GetActorScale3D();
-		TempScale.Y += TempScale.Y * AdditionalSize;
-		SetActorScale3D(TempScale);
-		BoxCollider->SetBoxExtent(FVector(25.f, 50.f + 20.f / TempScale.Y, 25.f));
-	}
-
-	GetWorld()->GetTimerManager().SetTimer(
-		BonusSizeTimer,
-		this,
-		&ThisClass::SetDefaultSize,
-		BonusTime,
-		false);
-}
-
-void AArkPaddle::BonusChangeLives(const int32 Amount)
-{
-	Lives += Amount;
-	SpawnBallLives();
-}
 
 void AArkPaddle::SetDefaultSize()
 {
@@ -137,13 +111,13 @@ void AArkPaddle::StartGame()
 void AArkPaddle::Move(const FInputActionValue& Value)
 {
 	if (!GetWorld()) return;
-	
+
 	const FVector2D AxisVector = Value.Get<FVector2D>();
 
 	if (Controller)
 	{
 		const float CurrentSpeed = AxisVector.X * Speed * UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
-		AddActorWorldOffset(FVector(0.f,CurrentSpeed, 0.f), true);
+		AddActorWorldOffset(FVector(0.f, CurrentSpeed, 0.f), true);
 	}
 }
 
@@ -162,7 +136,7 @@ void AArkPaddle::SpawnBall()
 			CurrentBall->SetOwner(this);
 			CurrentBall->SetBallState(EState::Idle);
 			CurrentBall->OnDeadEvent.AddDynamic(this, &AArkPaddle::BallIsDead);
-			
+
 			//CurrentBall->AttachToActor(this, FAttachmentTransformRules::KeepWorldTransform);
 			CurrentBall->AttachToComponent(Arrow, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
 		}
@@ -192,7 +166,7 @@ void AArkPaddle::SpawnBallLives()
 		LiveBall->DestroyComponent();
 	}
 	BallLives.Empty();
-	
+
 	for (int8 i = 0; i < Lives - 1; ++i)
 	{
 		auto* NewMeshComp = NewObject<UStaticMeshComponent>
@@ -228,4 +202,47 @@ void AArkPaddle::UpdateBallLivesLocation()
 			BallLives[i]->SetRelativeLocation(FVector(-100.f, Offset, 0.f));
 		}
 	}
+}
+
+// Работа с бонусами
+
+void AArkPaddle::BonusChangeSize(const float AdditionalSize, const float BonusTime)
+{
+	if (AdditionalSize == 0 || BonusTime == 0) return;
+	if (!GetWorld()) return;
+
+	if (!GetWorld()->GetTimerManager().IsTimerActive(BonusSizeTimer))
+	{
+		FVector TempScale = GetActorScale3D();
+		TempScale.Y += TempScale.Y * AdditionalSize;
+		SetActorScale3D(TempScale);
+		BoxCollider->SetBoxExtent(FVector(25.f, 50.f + 20.f / TempScale.Y, 25.f));
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		BonusSizeTimer,
+		this,
+		&ThisClass::SetDefaultSize,
+		BonusTime,
+		false);
+}
+
+void AArkPaddle::BonusChangeLives(const int32 Amount)
+{
+	Lives += Amount;
+	SpawnBallLives();
+}
+
+void AArkPaddle::BonusChangeBallSpeed(const float Amount) const
+{
+	if (!IsValid(CurrentBall)) return;
+
+	CurrentBall->ChangeSpeed(Amount);
+}
+
+void AArkPaddle::BonusChangeBallPower(const int32 Amount, const float BonusTime) const
+{
+	if (!IsValid(CurrentBall)) return;
+
+	CurrentBall->ChangePower(Amount, BonusTime);
 }
