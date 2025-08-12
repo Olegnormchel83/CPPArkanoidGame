@@ -3,7 +3,10 @@
 
 #include "World/ArkBlock.h"
 
+#include "ArkBonusParent.h"
 #include "Components/ArkHealthComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/World.h"
 #include "World/ArkBall.h"
 
 AArkBlock::AArkBlock()
@@ -23,14 +26,14 @@ AArkBlock::AArkBlock()
 void AArkBlock::Init(
 	const FVector& NewScale,
 	const int32 LifeAmount,
-	const TSubclassOf<AActor>& NewBonusClass)
+	const TSubclassOf<AArkBonusParent>& NewBonusClass)
 {
 	SetActorScale3D(NewScale);
 	BonusClass = NewBonusClass;
 	HealthComponent->SetHealth(LifeAmount);
 	
-	if (HealtMaterials.IsValidIndex(HealthComponent->GetHealth() - 1))
-		StaticMesh->SetMaterial(0, HealtMaterials[HealthComponent->GetHealth() - 1]);
+	if (HealthMaterials.IsValidIndex(HealthComponent->GetHealth() - 1))
+		StaticMesh->SetMaterial(0, HealthMaterials[HealthComponent->GetHealth() - 1]);
 }
 
 void AArkBlock::BeginPlay()
@@ -55,20 +58,16 @@ void AArkBlock::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitive
 			{
 				if (BonusClass)
 				{
-					GetWorld()->SpawnActor<AActor>(BonusClass, GetActorLocation(), GetActorRotation());
+					GetWorld()->SpawnActor<AArkBonusParent>(BonusClass, GetActorLocation(), GetActorRotation());
 				}
 				
 				Destroy();
 			}
 			else
 			{
-				if (HealtMaterials.IsValidIndex(HealthComponent->GetHealth() - 1))
-					StaticMesh->SetMaterial(0, HealtMaterials[HealthComponent->GetHealth() - 1]);
+				if (HealthMaterials.IsValidIndex(HealthComponent->GetHealth() - 1))
+					StaticMesh->SetMaterial(0, HealthMaterials[HealthComponent->GetHealth() - 1]);
 			}
 		}
-		
-		
-
-		
 	}
 }

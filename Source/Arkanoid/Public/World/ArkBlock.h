@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ArkBlock.generated.h"
 
+class AArkBonusParent;
 class UArkHealthComponent;
 
 UCLASS()
@@ -21,7 +22,7 @@ private:
 			meta = (AllowPrivateAccess = "true"))
 	UArkHealthComponent* HealthComponent = nullptr;
 	
-	TSubclassOf<AActor> BonusClass = nullptr;
+	TSubclassOf<AArkBonusParent> BonusClass = nullptr;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -30,7 +31,7 @@ public:
 	void Init(
 		const FVector& NewScale,
 		const int32 LifeAmount,
-		const TSubclassOf<AActor>& NewBonusClass = nullptr);
+		const TSubclassOf<AArkBonusParent>& NewBonusClass = nullptr);
 	
 protected:
 
@@ -48,5 +49,5 @@ protected:
 
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Settings")
-	TArray<UMaterialInterface*> HealtMaterials;
+	TArray<UMaterialInterface*> HealthMaterials;
 };

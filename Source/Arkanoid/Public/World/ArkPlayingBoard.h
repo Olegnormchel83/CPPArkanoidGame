@@ -7,6 +7,7 @@
 #include "ArkPlayingBoard.generated.h"
 
 class AArkBlock;
+class AArkBonusParent;
 
 USTRUCT(BlueprintType)
 struct FBonusTypeChance
@@ -14,7 +15,7 @@ struct FBonusTypeChance
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	TSubclassOf<AActor> BonusClass = nullptr;
+	TSubclassOf<AArkBonusParent> BonusClass = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite,
 		meta = (ClampMin = "0", UIMin = "0", ClampMax = "1", UIMax = "1"))
@@ -55,7 +56,7 @@ protected:
 	
 	virtual void BeginPlay() override;
 
-	TSubclassOf<AActor> GetBonusClass();
+	TSubclassOf<AArkBonusParent> GetBonusClass();
 	
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings | Base",
@@ -92,4 +93,6 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings | Base")
 	TArray<FBonusTypeChance> BonusTypeByChance;
+
+	void BonusDestroyCubes(const int32 Amount);
 };

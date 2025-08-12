@@ -2,7 +2,11 @@
 
 
 #include "World/ArkBall.h"
+
+#include "TimerManager.h"
 #include "Components/ArrowComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Engine/World.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogArkBall, All, All);
 
