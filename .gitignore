@@ -1,6 +1,9 @@
 # Created by https://www.toptal.com/developers/gitignore/api/rider,unrealengine,visualstudio,git
 # Edit at https://www.toptal.com/developers/gitignore?templates=rider,unrealengine,visualstudio,git
 
+.idea
+Content/UndergroundSciFi
+
 ### Git ###
 # Created by git for backups. To disable backups in Git:
 # $ git config --global mergetool.keepBackup false

@@ -80,6 +80,11 @@ void AArkPaddle::SetDefaultSize()
 	BoxCollider->SetBoxExtent(FVector(25.f, 50 + 20.f / DefaultScale.Y, 25.f));
 }
 
+void AArkPaddle::SetDefaultControl()
+{
+	bInvertControl = false;
+}
+
 void AArkPaddle::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
@@ -117,7 +122,10 @@ void AArkPaddle::Move(const FInputActionValue& Value)
 	if (Controller)
 	{
 		const float CurrentSpeed = AxisVector.X * Speed * UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
-		AddActorWorldOffset(FVector(0.f, CurrentSpeed, 0.f), true);
+		AddActorWorldOffset(FVector(
+			0.f,
+			bInvertControl ? -CurrentSpeed : CurrentSpeed,
+			0.f), true);
 	}
 }
 
@@ -224,7 +232,8 @@ void AArkPaddle::BonusChangeSize(const float AdditionalSize, const float BonusTi
 		this,
 		&ThisClass::SetDefaultSize,
 		BonusTime,
-		false);
+		false
+		);
 }
 
 void AArkPaddle::BonusChangeLives(const int32 Amount)
@@ -245,4 +254,22 @@ void AArkPaddle::BonusChangeBallPower(const int32 Amount, const float BonusTime)
 	if (!IsValid(CurrentBall)) return;
 
 	CurrentBall->ChangePower(Amount, BonusTime);
+}
+
+void AArkPaddle::BonusInvertControl(const int32 Amount, const float BonusTime)
+{
+	if (!GetWorld() || BonusTime == 0) return;
+
+	if (!GetWorld()->GetTimerManager().IsTimerActive(InvertControlTimer))
+	{
+		bInvertControl = true;
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+	InvertControlTimer,
+	this,
+	&ThisClass::SetDefaultControl,
+	BonusTime,
+	false
+	);
 }

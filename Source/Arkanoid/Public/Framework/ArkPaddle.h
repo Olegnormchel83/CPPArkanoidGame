@@ -61,6 +61,9 @@ private:
 	UPROPERTY()
 	TArray<UStaticMeshComponent*> BallLives;
 
+	UPROPERTY()
+	bool bInvertControl = false;
+	
 	void SpawnBallLives();
 	void UpdateBallLivesLocation();
 	
@@ -112,9 +115,13 @@ public:
 	// Работа с бонусами
 protected:
 	FTimerHandle BonusSizeTimer;
+	FTimerHandle InvertControlTimer;
 
 	UFUNCTION()
 	void SetDefaultSize();
+
+	UFUNCTION()
+	void SetDefaultControl();
 	
 public:
 	void BonusChangeSize(const float AdditionalSize, const float BonusTime);
@@ -124,5 +131,7 @@ public:
 	void BonusChangeBallSpeed(const float Amount) const;
 
 	void BonusChangeBallPower(const int32 Amount, const float BonusTime) const;
+
+	void BonusInvertControl(const int32 Amount, const float BonusTime);
 	
 };
