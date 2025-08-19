@@ -23,6 +23,8 @@ private:
 	UArkHealthComponent* HealthComponent = nullptr;
 	
 	TSubclassOf<AArkBonusParent> BonusClass = nullptr;
+
+	int32 MaxLife = 1;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -32,6 +34,9 @@ public:
 		const FVector& NewScale,
 		const int32 LifeAmount,
 		const TSubclassOf<AArkBonusParent>& NewBonusClass = nullptr);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Settings")
+	int32 ScoreByLife = 25;
 	
 protected:
 

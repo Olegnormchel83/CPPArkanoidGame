@@ -4,6 +4,7 @@
 #include "World/ArkBlock.h"
 
 #include "ArkBonusParent.h"
+#include "ArkPlayerState.h"
 #include "Components/ArkHealthComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/World.h"
@@ -31,6 +32,7 @@ void AArkBlock::Init(
 	SetActorScale3D(NewScale);
 	BonusClass = NewBonusClass;
 	HealthComponent->SetHealth(LifeAmount);
+	MaxLife = LifeAmount;
 	
 	if (HealthMaterials.IsValidIndex(HealthComponent->GetHealth() - 1))
 		StaticMesh->SetMaterial(0, HealthMaterials[HealthComponent->GetHealth() - 1]);
@@ -59,6 +61,12 @@ void AArkBlock::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitive
 				if (BonusClass)
 				{
 					GetWorld()->SpawnActor<AArkBonusParent>(BonusClass, GetActorLocation(), GetActorRotation());
+				}
+
+				if (const auto Pawn = Cast<APawn>(Other->GetOwner()))
+				{
+					if (auto PlayerState = Cast<AArkPlayerState>(Pawn->GetPlayerState()))
+						PlayerState->ChangePlayerScore(ScoreByLife * MaxLife);
 				}
 				
 				Destroy();

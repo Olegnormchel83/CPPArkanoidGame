@@ -4,6 +4,7 @@
 #include "World/ArkPlayingBoard.h"
 
 #include "ArkBonusParent.h"
+#include "ArkGameMode.h"
 #include "CollisionShape.h"
 #include "DrawDebugHelpers.h"
 #include "Components/StaticMeshComponent.h"
@@ -146,6 +147,14 @@ void AArkPlayingBoard::SpawnBlockActors()
 void AArkPlayingBoard::OnBlockDestroyed(AActor* DestroyedBlock)
 {
 	BlockActors.Remove(Cast<AArkBlock>(DestroyedBlock));
+
+	if (BlockActors.Num() == 0)
+	{
+		if (const auto ArkGameMode = Cast<AArkGameMode>(GetWorld()->GetAuthGameMode()))
+		{
+			ArkGameMode->GameEnded();
+		}
+	}
 }
 
 void AArkPlayingBoard::BeginPlay()
