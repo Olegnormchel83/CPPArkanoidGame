@@ -3,6 +3,7 @@
 #include "ArkPaddle.h"
 
 #include "ArkBall.h"
+#include "ArkShield.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 #include "EnhancedInputComponent.h"
@@ -78,11 +79,19 @@ void AArkPaddle::SetDefaultSize()
 {
 	SetActorScale3D(DefaultScale);
 	BoxCollider->SetBoxExtent(FVector(25.f, 50 + 20.f / DefaultScale.Y, 25.f));
+	BonusSizeTimer.Invalidate();
 }
 
 void AArkPaddle::SetDefaultControl()
 {
 	bInvertControl = false;
+	InvertControlTimer.Invalidate();
+}
+
+void AArkPaddle::OnShieldDestroyed()
+{
+	bShieldEnabled = false;
+	ShieldTimer.Invalidate();
 }
 
 void AArkPaddle::OnConstruction(const FTransform& Transform)
@@ -123,9 +132,9 @@ void AArkPaddle::Move(const FInputActionValue& Value)
 	{
 		const float CurrentSpeed = AxisVector.X * Speed * UGameplayStatics::GetWorldDeltaSeconds(GetWorld());
 		AddActorWorldOffset(FVector(
-			0.f,
-			bInvertControl ? -CurrentSpeed : CurrentSpeed,
-			0.f), true);
+			                    0.f,
+			                    bInvertControl ? -CurrentSpeed : CurrentSpeed,
+			                    0.f), true);
 	}
 }
 
@@ -233,7 +242,7 @@ void AArkPaddle::BonusChangeSize(const float AdditionalSize, const float BonusTi
 		&ThisClass::SetDefaultSize,
 		BonusTime,
 		false
-		);
+	);
 }
 
 void AArkPaddle::BonusChangeLives(const int32 Amount)
@@ -266,10 +275,38 @@ void AArkPaddle::BonusInvertControl(const int32 Amount, const float BonusTime)
 	}
 
 	GetWorld()->GetTimerManager().SetTimer(
-	InvertControlTimer,
-	this,
-	&ThisClass::SetDefaultControl,
-	BonusTime,
-	false
+		InvertControlTimer,
+		this,
+		&ThisClass::SetDefaultControl,
+		BonusTime,
+		false
 	);
+}
+
+void AArkPaddle::BonusSpawnShield(const float BonusTime)
+{
+	if (!GetWorld() || BonusTime == 0 || bShieldEnabled) return;
+	
+	const FTransform ShieldTransform = FTransform(
+		FRotator::ZeroRotator,
+		ShieldSpawnLocation,
+		FVector::OneVector
+	);
+	
+	FActorSpawnParameters SpawnParameters;
+	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	auto Shield = GetWorld()->SpawnActor<AArkShield>(ShieldClass, ShieldTransform, SpawnParameters);
+	if (Shield)
+	{
+		bShieldEnabled = true;
+		Shield->SetLifeSpan(BonusTime);
+
+		GetWorld()->GetTimerManager().SetTimer(
+			ShieldTimer,
+			this,
+			&ThisClass::OnShieldDestroyed,
+			BonusTime,
+			false
+		);
+	}
 }

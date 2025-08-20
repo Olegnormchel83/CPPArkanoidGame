@@ -27,7 +27,6 @@ private:
 	int32 MaxLife = 1;
 	
 public:	
-	// Sets default values for this actor's properties
 	AArkBlock();
 
 	void Init(

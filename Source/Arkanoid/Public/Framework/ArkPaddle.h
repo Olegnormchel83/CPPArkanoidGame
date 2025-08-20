@@ -7,6 +7,7 @@
 
 #include "ArkPaddle.generated.h"
 
+class AArkShield;
 class AArkBall;
 class UArrowComponent;
 class UBoxComponent;
@@ -114,14 +115,28 @@ public:
 
 	// Работа с бонусами
 protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Settings | Bonuses",
+		meta = (ToolTip = "Класс щита"))
+	TSubclassOf<AArkShield> ShieldClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Settings | Bonuses",
+		meta = (ToolTip = "Location щита"))
+	FVector ShieldSpawnLocation;
+	
 	FTimerHandle BonusSizeTimer;
 	FTimerHandle InvertControlTimer;
+	FTimerHandle ShieldTimer;
+	
+	bool bShieldEnabled = false;
 
 	UFUNCTION()
 	void SetDefaultSize();
 
 	UFUNCTION()
 	void SetDefaultControl();
+
+	UFUNCTION()
+	void OnShieldDestroyed();
 	
 public:
 	void BonusChangeSize(const float AdditionalSize, const float BonusTime);
@@ -133,5 +148,7 @@ public:
 	void BonusChangeBallPower(const int32 Amount, const float BonusTime) const;
 
 	void BonusInvertControl(const int32 Amount, const float BonusTime);
+
+	void BonusSpawnShield(const float BonusTime);
 	
 };
