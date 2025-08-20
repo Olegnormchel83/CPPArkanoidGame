@@ -81,6 +81,12 @@ void AArkBall::Move(const float DeltaTime)
 		Direction.Z = 0.f;
 		Direction = Direction.GetSafeNormal();
 
+		// Добавляем небольшую погрешность к нарпавлению
+		constexpr float RandomAngle = 5.f;
+		const float RandomYaw = FMath::FRandRange(-RandomAngle, RandomAngle);
+		const FRotator RandomRotator(0.f, RandomYaw, 0.f);
+		Direction = RandomRotator.RotateVector(Direction);
+		
 		if (Speed < InitParameters.MaxSpeed)
 		{
 			Speed += InitParameters.Speed * 0.1f;

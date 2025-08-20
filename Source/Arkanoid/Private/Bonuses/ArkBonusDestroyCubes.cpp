@@ -17,7 +17,6 @@ void AArkBonusDestroyCubes::BonusAction(AArkPaddle* Paddle)
 		if (const auto CurrentBoard = *It)
 		{
 			CurrentBoard->BonusDestroyCubes(Value);
-			return;
 		}
 	}
 	

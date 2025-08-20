@@ -7,6 +7,7 @@
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
 #include "EnhancedInputComponent.h"
+#include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 AArkPaddle::AArkPaddle()
@@ -41,6 +42,18 @@ AArkPaddle::AArkPaddle()
 	Arrow->SetupAttachment(StaticMesh);
 	Arrow->SetRelativeLocation(FVector(150.f, 0.f, 0.f));
 	Arrow->SetAbsolute(false, false, true);
+
+	TopCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("TopCamera"));
+	check(TopCamera);
+	TopCamera->SetupAttachment(GetRootComponent());
+	TopCamera->bUsePawnControlRotation = false;
+	TopCamera->SetRelativeLocation(FVector(1550.f, 0.f, 4160.f));
+	TopCamera->SetRelativeRotation(FRotator(0, -90.f, 0));
+
+	POVCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("POVCamera"));
+	check(POVCamera);
+	POVCamera->SetupAttachment(StaticMesh);
+	POVCamera->SetAbsolute(false, false, true);
 }
 
 void AArkPaddle::BeginPlay()
@@ -94,6 +107,32 @@ void AArkPaddle::OnShieldDestroyed()
 	ShieldTimer.Invalidate();
 }
 
+void AArkPaddle::SetDefaultCameraRotation()
+{
+	if (!TopCamera) return;
+
+	const auto NewRotation = TopCamera->GetRelativeRotation() -
+		FRotator(0.f, 180.f, 0);
+	TopCamera->SetRelativeRotation(NewRotation);
+
+	RotateCameraTimer.Invalidate();
+}
+
+void AArkPaddle::SetTopCamera()
+{
+	if (!TopCamera) return;
+
+	POVCamera->SetActive(false);
+	TopCamera->SetActive(true);
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		PC->SetViewTargetWithBlend(this, 0.5f);
+	}
+
+	POVCameraTimer.Invalidate();
+}
+
 void AArkPaddle::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
@@ -103,6 +142,16 @@ void AArkPaddle::OnConstruction(const FTransform& Transform)
 	const FVector TempScale = FVector(GetActorScale().X, GetActorScale().X, GetActorScale().Z);
 	LeftStaticMesh->SetWorldScale3D(TempScale);
 	RightStaticMesh->SetWorldScale3D(TempScale);
+}
+
+void AArkPaddle::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (TopCamera && TopCamera->IsActive())
+	{
+		TopCamera->SetWorldLocation(FVector(1550.f, 0.f, 4160.f));
+	}
 }
 
 void AArkPaddle::ExitGame()
@@ -286,13 +335,13 @@ void AArkPaddle::BonusInvertControl(const int32 Amount, const float BonusTime)
 void AArkPaddle::BonusSpawnShield(const float BonusTime)
 {
 	if (!GetWorld() || BonusTime == 0 || bShieldEnabled) return;
-	
+
 	const FTransform ShieldTransform = FTransform(
 		FRotator::ZeroRotator,
 		ShieldSpawnLocation,
 		FVector::OneVector
 	);
-	
+
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 	auto Shield = GetWorld()->SpawnActor<AArkShield>(ShieldClass, ShieldTransform, SpawnParameters);
@@ -309,4 +358,48 @@ void AArkPaddle::BonusSpawnShield(const float BonusTime)
 			false
 		);
 	}
+}
+
+void AArkPaddle::BonusRotateCamera(const float BonusTime)
+{
+	if (!GetWorld() || BonusTime == 0 || !TopCamera) return;
+
+	if (!GetWorld()->GetTimerManager().IsTimerActive(RotateCameraTimer))
+	{
+		const auto NewRotation = TopCamera->GetRelativeRotation() +
+			FRotator(0.f, 180.f, 0.f);
+		TopCamera->SetRelativeRotation(NewRotation);
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		RotateCameraTimer,
+		this,
+		&ThisClass::SetDefaultCameraRotation,
+		BonusTime,
+		false
+	);
+}
+
+void AArkPaddle::BonusSetPOVCamera(const float BonusTime)
+{
+	if (!GetWorld() || BonusTime == 0 || !POVCamera) return;
+
+	if (!GetWorld()->GetTimerManager().IsTimerActive(POVCameraTimer))
+	{
+		TopCamera->SetActive(false);
+		POVCamera->SetActive(true);
+
+		if (APlayerController* PC = Cast<APlayerController>(GetController()))
+		{
+			PC->SetViewTargetWithBlend(this, 0.5f);
+		}
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(
+		POVCameraTimer,
+		this,
+		&ThisClass::SetTopCamera,
+		BonusTime,
+		false
+	);
 }

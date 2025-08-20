@@ -7,6 +7,7 @@
 
 #include "ArkPaddle.generated.h"
 
+class UCameraComponent;
 class AArkShield;
 class AArkBall;
 class UArrowComponent;
@@ -39,6 +40,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components",
 		meta = (AllowPrivateAccess = "true"))
 	UArrowComponent* Arrow = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components",
+		meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* TopCamera = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Components",
+		meta = (AllowPrivateAccess = "true"))
+	UCameraComponent* POVCamera = nullptr;
 
 	UPROPERTY()
 	AArkBall* CurrentBall = nullptr;
@@ -74,6 +83,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
 	void ExitGame();
@@ -123,9 +133,12 @@ protected:
 		meta = (ToolTip = "Location щита"))
 	FVector ShieldSpawnLocation;
 	
+	
 	FTimerHandle BonusSizeTimer;
 	FTimerHandle InvertControlTimer;
 	FTimerHandle ShieldTimer;
+	FTimerHandle RotateCameraTimer;
+	FTimerHandle POVCameraTimer;
 	
 	bool bShieldEnabled = false;
 
@@ -137,6 +150,12 @@ protected:
 
 	UFUNCTION()
 	void OnShieldDestroyed();
+
+	UFUNCTION()
+	void SetDefaultCameraRotation();
+
+	UFUNCTION()
+	void SetTopCamera();
 	
 public:
 	void BonusChangeSize(const float AdditionalSize, const float BonusTime);
@@ -150,5 +169,9 @@ public:
 	void BonusInvertControl(const int32 Amount, const float BonusTime);
 
 	void BonusSpawnShield(const float BonusTime);
+
+	void BonusRotateCamera(const float BonusTime);
+
+	void BonusSetPOVCamera(const float BonusTime);
 	
 };
