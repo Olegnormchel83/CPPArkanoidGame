@@ -37,10 +37,10 @@ struct FInitParameters
 	// Default structure constructor
 	FInitParameters()
 	{
-		Scale = 0.5f;
+		Scale = 0.75f;
 		Power = 1;
-		Speed = 500.0f;
-		MaxSpeed = 2500.0f;
+		Speed = 500.f;
+		MaxSpeed = 2500.f;
 	}
 };
 

@@ -150,9 +150,10 @@ void AArkPlayingBoard::OnBlockDestroyed(AActor* DestroyedBlock)
 
 	if (BlockActors.Num() == 0)
 	{
-		if (const auto ArkGameMode = Cast<AArkGameMode>(GetWorld()->GetAuthGameMode()))
+		if (const auto Gm = Cast<AArkGameMode>(GetWorld()->GetAuthGameMode()))
 		{
-			ArkGameMode->GameEnded();
+			UE_LOG(LogPlayingBoard, Warning, TEXT("GameEnded"));
+			Gm->GameEnded(true);
 		}
 	}
 }

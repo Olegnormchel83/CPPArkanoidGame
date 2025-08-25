@@ -3,6 +3,8 @@
 #include "ArkPaddle.h"
 
 #include "ArkBall.h"
+#include "ArkGameMode.h"
+#include "ArkPC.h"
 #include "ArkShield.h"
 #include "Components/ArrowComponent.h"
 #include "Components/BoxComponent.h"
@@ -157,7 +159,12 @@ void AArkPaddle::Tick(float DeltaTime)
 void AArkPaddle::ExitGame()
 {
 	if (!GetWorld()) return;
-	UGameplayStatics::OpenLevel(GetWorld(), "Menu", true);
+	//UGameplayStatics::OpenLevel(GetWorld(), "Menu", true);
+
+	if (const auto PC = Cast<AArkPC>(Controller))
+	{
+		PC->ExitButtonPressed();
+	}
 }
 
 void AArkPaddle::StartGame()
@@ -220,6 +227,11 @@ void AArkPaddle::BallIsDead()
 		BallLives[Lives - 1]->DestroyComponent();
 		BallLives.RemoveAt(Lives - 1);
 		UpdateBallLivesLocation();
+	}
+	else
+	{
+		if (const auto GM = Cast<AArkGameMode>(GetWorld()->GetAuthGameMode()))
+			GM->GameEnded(false);
 	}
 }
 

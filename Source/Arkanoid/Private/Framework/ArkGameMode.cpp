@@ -3,6 +3,7 @@
 #include "ArkGameMode.h"
 
 #include "ArkGameState.h"
+#include "ArkPC.h"
 #include "ArkPlayerState.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogArkGameMode, Log, All);
@@ -28,12 +29,23 @@ void AArkGameMode::GameStarted()
 	ArkGameState->StartGame();
 }
 
-void AArkGameMode::GameEnded()
+void AArkGameMode::GameEnded(const bool bWin)
 {
 	auto ArkGameState = Cast<AArkGameState>(GameState);
 	if (!ArkGameState) return;
 
 	ArkGameState->StopGame();
 
-	UE_LOG(LogArkGameMode, Warning, TEXT("GameEnded"));
+	UE_LOG(LogArkGameMode, Warning, TEXT("GameEnded, WinStatus: %d"), bWin);
+
+	for (const auto PlayerState : GameState->PlayerArray)
+	{
+		if (PlayerState)
+		{
+			if (const auto Player = Cast<AArkPC>(PlayerState->GetPlayerController()))
+			{
+				Player->ShowGameEndMenu(bWin);
+			}
+		}
+	}
 }
