@@ -2,9 +2,11 @@
 
 #include "Widgets/ArkHUD.h"
 
+#include "ArkGameInstance.h"
 #include "ArkGameState.h"
 #include "ArkPlayerState.h"
 #include "Components/TextBlock.h"
+#include "Kismet/GameplayStatics.h"
 
 void UArkHUD::NativeConstruct()
 {
@@ -26,6 +28,8 @@ void UArkHUD::NativeConstruct()
 		const FString DefaultScoreText = FString::Printf(TEXT("СЧЁТ: 000"));
 		CurrentScore->SetText(FText::FromString(DefaultScoreText));
 	}
+
+	UpdateLevelRecord();
 }
 
 void UArkHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -47,12 +51,14 @@ void UArkHUD::UpdateScore(const int32 NewScore)
 			PlayAnimation(
 				ShakeAnimation,
 				0.f,
-				3,
+				1,
 				EUMGSequencePlayMode::Forward,
 				1.f
 				);
 		}
 	}
+
+	UpdateLevelRecord();
 }
 
 void UArkHUD::UpdateTime()
@@ -66,5 +72,18 @@ void UArkHUD::UpdateTime()
 
 		const FString TimeString = FString::Printf(TEXT("%02d : %02d : %03d"), Minutes, Seconds, Milliseconds);
 		GameTime->SetText(FText::FromString(TimeString));
+	}
+}
+
+void UArkHUD::UpdateLevelRecord()
+{
+	if (LevelRecord)
+	{
+		if (const auto Gi = Cast<UArkGameInstance>(GetGameInstance()))
+		{
+			const int32 CurrentRecord = Gi->GetLevelRecord(UGameplayStatics::GetCurrentLevelName(this, true));
+			const FString ScoreText = FString::Printf(TEXT("РЕКОРД: %03d"), CurrentRecord);
+			LevelRecord->SetText(FText::FromString(*ScoreText));
+		}
 	}
 }
